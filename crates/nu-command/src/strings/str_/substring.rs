@@ -83,17 +83,17 @@ impl Command for SubCommand {
             Example {
                 description:
                     "Get a substring \"nushell\" from the text \"good nushell\" using a range",
-                example: " 'good nushell' | str substring 5..12",
+                example: " 'good nushell' | str substring 5..11",
                 result: Some(Value::test_string("nushell")),
             },
             Example {
                 description: "Alternately, you can pass in a list",
-                example: " 'good nushell' | str substring [5 12]",
+                example: " 'good nushell' | str substring [5 11]",
                 result: Some(Value::test_string("nushell")),
             },
             Example {
                 description: "Or a simple comma-separated string",
-                example: " 'good nushell' | str substring '5,12'",
+                example: " 'good nushell' | str substring '5,11'",
                 result: Some(Value::test_string("nushell")),
             },
             Example {
@@ -134,7 +134,7 @@ fn action(input: &Value, args: &Arguments, head: Span) -> Value {
 
             if start < len && end >= 0 {
                 match start.cmp(&end) {
-                    Ordering::Equal => Value::string("", head),
+                    // Ordering::Equal => Value::string("", head),
                     Ordering::Greater => Value::Error {
                         error: ShellError::TypeMismatch(
                             "End must be greater than or equal to Start".to_string(),
@@ -142,6 +142,25 @@ fn action(input: &Value, args: &Arguments, head: Span) -> Value {
                         ),
                     },
                     Ordering::Less => Value::String {
+                        val: {
+                            if end + 1 == isize::max_value() {
+                                String::from_utf8_lossy(
+                                    &s.bytes().skip(start as usize).collect::<Vec<_>>(),
+                                )
+                                .to_string()
+                            } else {
+                                String::from_utf8_lossy(
+                                    &s.bytes()
+                                        .skip(start as usize)
+                                        .take((end + 1 - start) as usize)
+                                        .collect::<Vec<_>>(),
+                                )
+                                .to_string()
+                            }
+                        },
+                        span: head,
+                    },
+                    Ordering::Equal => Value::String {
                         val: {
                             if end + 1 == isize::max_value() {
                                 String::from_utf8_lossy(
@@ -297,12 +316,12 @@ mod tests {
         let word = Value::test_string("andres");
 
         let cases = vec![
-            expectation("a", (0, 1)),
-            expectation("an", (0, 2)),
-            expectation("and", (0, 3)),
-            expectation("andr", (0, 4)),
-            expectation("andre", (0, 5)),
-            expectation("andres", (0, 6)),
+            expectation("a", (0, 0)),
+            expectation("an", (0, 1)),
+            expectation("and", (0, 2)),
+            expectation("andr", (0, 3)),
+            expectation("andre", (0, 4)),
+            expectation("andres", (0, 5)),
             expectation("", (0, -6)),
             expectation("a", (0, -5)),
             expectation("an", (0, -4)),
