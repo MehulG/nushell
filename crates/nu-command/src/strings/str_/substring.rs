@@ -143,7 +143,7 @@ fn action(input: &Value, args: &Arguments, head: Span) -> Value {
                     },
                     Ordering::Less => Value::String {
                         val: {
-                            if end == isize::max_value() {
+                            if end + 1 == isize::max_value() {
                                 String::from_utf8_lossy(
                                     &s.bytes().skip(start as usize).collect::<Vec<_>>(),
                                 )
@@ -152,7 +152,7 @@ fn action(input: &Value, args: &Arguments, head: Span) -> Value {
                                 String::from_utf8_lossy(
                                     &s.bytes()
                                         .skip(start as usize)
-                                        .take((end - start) as usize)
+                                        .take((end + 1 - start) as usize)
                                         .collect::<Vec<_>>(),
                                 )
                                 .to_string()
